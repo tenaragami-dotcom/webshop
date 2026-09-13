@@ -1,0 +1,13 @@
+-- AlterTable
+ALTER TABLE `product` ADD COLUMN `rehearsalPlanDays` INTEGER NOT NULL DEFAULT 3,
+    ADD COLUMN `rehearsalPlanPrice` INTEGER NULL,
+    ADD COLUMN `rentalBaseDays` INTEGER NOT NULL DEFAULT 4,
+    ADD COLUMN `rentalExtensionPricePerDay` INTEGER NULL,
+    ADD COLUMN `rentalMaxExtensionDays` INTEGER NOT NULL DEFAULT 14,
+    ADD COLUMN `tryOnPlanDays` INTEGER NOT NULL DEFAULT 4,
+    ADD COLUMN `tryOnPlanPrice` INTEGER NULL;
+
+-- AlterTable
+ALTER TABLE `rentalbooking` ADD COLUMN `extensionDays` INTEGER NOT NULL DEFAULT 0,
+    ADD COLUMN `isRehearsalLeg` BOOLEAN NOT NULL DEFAULT false,
+    ADD COLUMN `planType` ENUM('STANDARD', 'REHEARSAL', 'TRY_ON') NOT NULL DEFAULT 'STANDARD';

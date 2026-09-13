@@ -1,0 +1,226 @@
+// Prisma schema for bridal-shop
+// Learn more: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  MEMBER
+  ADMIN
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  name         String
+  phone        String?
+  role         UserRole @default(MEMBER)
+  createdAt    DateTime @default(now())
+
+  orders        Order[]
+  rentalBookings RentalBooking[]
+}
+
+model Brand {
+  id                 String    @id @default(cuid())
+  name               String
+  reading            String?
+  slug               String    @unique
+  description        String    @db.Text
+  sortOrder          Int       @default(0)
+  excludeFromCatalog Boolean   @default(false)
+  createdAt          DateTime  @default(now())
+
+  products Product[]
+}
+
+model Category {
+  id   String @id @default(cuid())
+  name String
+  slug String @unique
+
+  products Product[]
+}
+
+enum ProductStatus {
+  ACTIVE
+  SOLD_OUT
+  DRAFT
+}
+
+model Product {
+  id            String        @id @default(cuid())
+  name          String
+  slug          String        @unique
+  description   String        @db.Text
+  brandId       String
+  categoryId    String
+  priceSell     Int?
+  priceRental   Int?
+  isSellable    Boolean       @default(false)
+  isRentable    Boolean       @default(false)
+  stockQuantity Int           @default(1)
+  status        ProductStatus @default(ACTIVE)
+  createdAt     DateTime      @default(now())
+
+  // レンタル: 基本プラン日数・延長・郵送試着プラン設定
+  rentalBaseDays             Int  @default(4)
+  rentalExtensionPricePerDay Int?
+  rentalMaxExtensionDays     Int  @default(14)
+  tryOnPlanPrice             Int?
+  tryOnPlanDays              Int  @default(4)
+
+  brand    Brand    @relation(fields: [brandId], references: [id])
+  category Category @relation(fields: [categoryId], references: [id])
+  images   ProductImage[]
+  variants ProductVariant[]
+
+  rentalBookings RentalBooking[]
+  orderItems     OrderItem[]
+}
+
+model ProductImage {
+  id        String  @id @default(cuid())
+  productId String
+  seed      String
+  url       String?
+  order     Int     @default(0)
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+}
+
+model ProductVariant {
+  id            String  @id @default(cuid())
+  productId     String
+  name          String
+  colorHex      String?
+  order         Int     @default(0)
+  stockQuantity Int     @default(1)
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+}
+
+enum RentalStatus {
+  PENDING
+  CONFIRMED
+  SHIPPED
+  RETURNED
+  CANCELLED
+}
+
+enum RentalPlanType {
+  STANDARD
+  TRY_ON
+}
+
+model RentalBooking {
+  id             String         @id @default(cuid())
+  userId         String
+  productId      String
+  orderId        String?
+  variantName    String?
+  startDate      DateTime
+  endDate        DateTime
+  status         RentalStatus   @default(PENDING)
+  planType       RentalPlanType @default(STANDARD)
+  extensionDays  Int            @default(0)
+  createdAt      DateTime       @default(now())
+
+  user    User     @relation(fields: [userId], references: [id])
+  product Product  @relation(fields: [productId], references: [id])
+  order   Order?   @relation(fields: [orderId], references: [id])
+}
+
+enum OrderType {
+  PURCHASE
+  RENTAL
+}
+
+enum PaymentStatus {
+  UNPAID
+  PAID
+  FAILED
+  REFUNDED
+}
+
+enum PaymentMethod {
+  CREDIT_CARD
+  BANK_TRANSFER
+}
+
+model Order {
+  id              String        @id @default(cuid())
+  userId          String
+  type            OrderType
+  totalAmount     Int
+  paymentStatus   PaymentStatus @default(UNPAID)
+  paymentMethod   PaymentMethod @default(CREDIT_CARD)
+  paymentRef      String?
+  shippingName    String
+  shippingAddress String
+  shippingPhone   String
+  createdAt       DateTime      @default(now())
+  cancelledAt     DateTime?
+  cancellationFee Int?
+
+  user           User            @relation(fields: [userId], references: [id])
+  items          OrderItem[]
+  rentalBookings RentalBooking[]
+}
+
+model OrderItem {
+  id          String    @id @default(cuid())
+  orderId     String
+  productId   String
+  quantity    Int       @default(1)
+  price       Int
+  type        OrderType
+  variantName String?
+
+  order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id])
+}
+
+enum NewsCategory {
+  NEWS
+  CAMPAIGN
+}
+
+model NewsPost {
+  id          String       @id @default(cuid())
+  title       String
+  slug        String       @unique
+  body        String       @db.Text
+  category    NewsCategory @default(NEWS)
+  publishedAt DateTime     @default(now())
+}
+
+model JournalPost {
+  id          String   @id @default(cuid())
+  title       String
+  slug        String   @unique
+  body        String   @db.Text
+  publishedAt DateTime @default(now())
+}
+
+enum ContactStatus {
+  NEW
+  RESPONDED
+}
+
+model ContactMessage {
+  id        String        @id @default(cuid())
+  name      String
+  email     String
+  subject   String
+  message   String        @db.Text
+  status    ContactStatus @default(NEW)
+  createdAt DateTime      @default(now())
+}
