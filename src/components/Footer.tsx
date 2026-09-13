@@ -35,7 +35,7 @@ export function Footer() {
         <div>
           <Logo id="footer-logo" markSize={26} wordmarkClassName="text-xl" />
           <p className="mt-3 text-xs leading-relaxed text-charcoal-soft">
-            ハンドメイドのコスチュームジュエリーやブライダル用アクセサリーのレンタル＆販売ショップです。
+            ハンドメイドのコスチュームジュエリーやアクセサリーのレンタル＆販売ショップです。
             他にもゴシック系、人形用、カジュアルなアクセサリーや雑貨もございます。セミ・フルオーダーも承ります。
           </p>
         </div>

@@ -8,7 +8,7 @@ const brands = [
     name: "Lumière Blanc",
     slug: "lumiere-blanc",
     description:
-      "光をまとうような繊細なパヴェディテールが特徴のインポートブランド。クラシックな花嫁のためのタイムレスなデザイン。",
+      "光をまとうような繊細なパヴェディテールが特徴のインポートブランド。クラシックで上品なタイムレスなデザイン。",
   },
   {
     name: "Rosalind Atelier",
@@ -26,7 +26,7 @@ const brands = [
     name: "Étoile Argentée",
     slug: "etoile-argentee",
     description:
-      "星をモチーフにしたクリスタルティアラが看板商品。華やかな挙式・二次会シーンにおすすめ。",
+      "星をモチーフにしたクリスタルティアラが看板商品。華やかなパーティーシーンにおすすめ。",
   },
   {
     name: "Camélia Blanc",
@@ -38,7 +38,7 @@ const brands = [
 
 const categories = [
   { name: "ティアラ", slug: "tiara" },
-  { name: "ヘッドドレス", slug: "headdress" },
+  { name: "ブレスレット", slug: "bracelet" },
   { name: "イヤリング・ピアス", slug: "earrings" },
   { name: "ネックレス", slug: "necklace" },
 ] as const;
@@ -63,11 +63,11 @@ const productNames: Record<string, string[]> = {
     "フローレンス リーフ ティアラ",
     "ノクターン スター ティアラ",
   ],
-  headdress: [
-    "ベルアミ ヘッドドレス",
-    "シャルロット コーム",
-    "リュミエール ヘッドバンド",
-    "ジャルダン フラワーコーム",
+  bracelet: [
+    "ベルアミ バングルブレスレット",
+    "シャルロット パールブレスレット",
+    "リュミエール チェーンブレスレット",
+    "ジャルダン フラワーブレスレット",
   ],
   earrings: [
     "パール ドロップ イヤリング",
