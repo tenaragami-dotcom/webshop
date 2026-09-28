@@ -32,7 +32,7 @@ export default function CartPage() {
           <ul className="mt-8 divide-y divide-line border-y border-line">
             {items.map((item) => (
               <li
-                key={`${item.productId}-${item.type}-${item.rentalStart ?? ""}-${item.variantName ?? ""}`}
+                key={`${item.productId}-${item.type}-${item.rentalStart ?? ""}-${item.variantName ?? ""}-${item.giftWrap ?? ""}`}
                 className="flex gap-4 py-6"
               >
                 <PlaceholderImage
@@ -52,6 +52,11 @@ export default function CartPage() {
                   {item.variantName && (
                     <p className="mt-1 text-[11px] text-charcoal-soft">
                       カラー: {item.variantName}
+                    </p>
+                  )}
+                  {item.giftWrap && (
+                    <p className="mt-1 text-[11px] text-charcoal-soft">
+                      🎁 有料ギフトラッピング
                     </p>
                   )}
                   {item.type === "RENTAL" && item.rentalStart && item.rentalEnd && (
@@ -81,6 +86,7 @@ export default function CartPage() {
                                 type: item.type,
                                 rentalStart: item.rentalStart,
                                 variantName: item.variantName,
+                                giftWrap: item.giftWrap,
                               },
                               Number(e.target.value)
                             )
@@ -97,6 +103,7 @@ export default function CartPage() {
                           type: item.type,
                           rentalStart: item.rentalStart,
                           variantName: item.variantName,
+                          giftWrap: item.giftWrap,
                         })
                       }
                       className="text-charcoal-soft underline hover:text-red-600"

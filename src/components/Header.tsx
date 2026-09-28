@@ -9,7 +9,6 @@ const NAV_LINKS = [
   { href: "/brands", label: "BRAND" },
   { href: "/rental/how-to", label: "HOW TO RENT" },
   { href: "/news", label: "NEWS" },
-  { href: "/journal", label: "JOURNAL" },
   { href: "/about", label: "ABOUT" },
 ];
 

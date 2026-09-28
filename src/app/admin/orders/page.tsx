@@ -72,6 +72,7 @@ export default async function AdminOrdersPage() {
                     {item.product.name}
                     {item.variantName ? `（${item.variantName}）` : ""} × {item.quantity}（
                     {item.type}）
+                    {item.giftWrap && " 🎁ギフトラッピング"}
                   </li>
                 ))}
               </ul>

@@ -18,6 +18,7 @@ export function CheckoutForm({ defaultName }: { defaultName: string }) {
   const [paymentMethod, setPaymentMethod] = useState<"CREDIT_CARD" | "BANK_TRANSFER">(
     "CREDIT_CARD"
   );
+  const [couponCode, setCouponCode] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -36,6 +37,7 @@ export function CheckoutForm({ defaultName }: { defaultName: string }) {
           shippingAddress,
           shippingPhone,
           paymentMethod,
+          couponCode: couponCode.trim() || undefined,
           items: items.map((i) => ({
             productId: i.productId,
             type: i.type,
@@ -45,6 +47,7 @@ export function CheckoutForm({ defaultName }: { defaultName: string }) {
             variantName: i.variantName,
             planType: i.planType,
             extensionDays: i.extensionDays,
+            giftWrap: i.giftWrap,
           })),
         }),
       });
@@ -73,7 +76,7 @@ export function CheckoutForm({ defaultName }: { defaultName: string }) {
         <ul className="mt-3 divide-y divide-line border-y border-line text-sm">
           {items.map((item) => (
             <li
-              key={`${item.productId}-${item.type}-${item.rentalStart ?? ""}-${item.variantName ?? ""}`}
+              key={`${item.productId}-${item.type}-${item.rentalStart ?? ""}-${item.variantName ?? ""}-${item.giftWrap ?? ""}`}
               className="flex items-center justify-between py-3"
             >
               <div>
@@ -83,6 +86,9 @@ export function CheckoutForm({ defaultName }: { defaultName: string }) {
                 </p>
                 {item.variantName && (
                   <p className="text-[11px] text-charcoal-soft">カラー: {item.variantName}</p>
+                )}
+                {item.giftWrap && (
+                  <p className="text-[11px] text-charcoal-soft">🎁 有料ギフトラッピング</p>
                 )}
                 {item.rentalStart && item.rentalEnd && (
                   <p className="text-[11px] text-charcoal-soft">
@@ -102,6 +108,19 @@ export function CheckoutForm({ defaultName }: { defaultName: string }) {
           <span>合計</span>
           <span>{formatPrice(total)}</span>
         </div>
+      </div>
+
+      <div className="space-y-2">
+        <h2 className="text-xs tracking-wide-jp text-gold">クーポンコード</h2>
+        <input
+          value={couponCode}
+          onChange={(e) => setCouponCode(e.target.value)}
+          placeholder="お持ちの場合はご入力ください"
+          className="w-full border border-line px-3 py-2 text-sm"
+        />
+        <p className="text-[11px] text-charcoal-soft">
+          ※標準プランのレンタルにのみご利用いただけます。割引は注文確定時に反映されます。
+        </p>
       </div>
 
       <div className="space-y-4">

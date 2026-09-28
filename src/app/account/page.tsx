@@ -6,6 +6,7 @@ import { formatDate, formatPrice } from "@/lib/format";
 import { SignOutButton } from "@/components/SignOutButton";
 import { CancelOrderButton } from "@/components/CancelOrderButton";
 import { canCancelOrder, computeCancellationFee } from "@/lib/cancellation";
+import { isCouponUsable } from "@/lib/coupon";
 
 export default async function AccountPage() {
   const session = await auth();
@@ -15,6 +16,11 @@ export default async function AccountPage() {
     where: { userId: session.user.id },
     include: { items: { include: { product: true } }, rentalBookings: true },
     orderBy: { createdAt: "desc" },
+  });
+
+  const coupons = await prisma.coupon.findMany({
+    where: { userId: session.user.id },
+    orderBy: { issuedAt: "desc" },
   });
 
   return (
@@ -55,9 +61,15 @@ export default async function AccountPage() {
                       <li key={item.id}>
                         {item.product.name}
                         {item.variantName ? `（${item.variantName}）` : ""} × {item.quantity}
+                        {item.giftWrap && " 🎁ギフトラッピング"}
                       </li>
                     ))}
                   </ul>
+                  {order.discountAmount !== null && order.discountAmount > 0 && (
+                    <p className="mt-1 text-right text-[11px] text-gold-dark">
+                      クーポン割引 −{formatPrice(order.discountAmount)}
+                    </p>
+                  )}
                   <p className="mt-1 text-right">{formatPrice(order.totalAmount)}</p>
                   {order.cancelledAt && order.cancellationFee !== null && (
                     <p className="mt-1 text-right text-[11px] text-charcoal-soft">
@@ -70,6 +82,42 @@ export default async function AccountPage() {
                       <CancelOrderButton orderId={order.id} fee={fee} />
                     </div>
                   )}
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </section>
+
+      <section className="mt-12">
+        <h2 className="font-display text-lg tracking-wide-jp">クーポン</h2>
+        {coupons.length === 0 ? (
+          <p className="mt-4 text-sm text-charcoal-soft">
+            お持ちのクーポンはありません。ご試着プランをご利用いただくと、標準プラン専用の10%OFFクーポンが発行されます。
+          </p>
+        ) : (
+          <ul className="mt-4 divide-y divide-line border-y border-line">
+            {coupons.map((coupon) => {
+              const usable = isCouponUsable(coupon);
+              return (
+                <li
+                  key={coupon.id}
+                  className="flex flex-wrap items-center justify-between gap-2 py-3 text-sm"
+                >
+                  <div>
+                    <p className="font-mono text-sm tracking-wide">{coupon.code}</p>
+                    <p className="mt-1 text-[11px] text-charcoal-soft">
+                      標準プランのレンタルで{coupon.discountPercent}%OFF ／ 有効期限{" "}
+                      {formatDate(coupon.expiresAt)}まで
+                    </p>
+                  </div>
+                  <span
+                    className={`text-[11px] tracking-wide-jp ${
+                      usable ? "text-gold" : "text-charcoal-soft"
+                    }`}
+                  >
+                    {coupon.usedAt ? "使用済み" : usable ? "利用可能" : "有効期限切れ"}
+                  </span>
                 </li>
               );
             })}

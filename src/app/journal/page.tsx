@@ -7,8 +7,8 @@ export default async function JournalPage() {
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-12">
-      <p className="text-xs tracking-wide-jp text-gold">JOURNAL</p>
-      <h1 className="font-display mt-2 text-2xl">ジャーナル</h1>
+      <p className="text-xs tracking-wide-jp text-gold">COLUMN</p>
+      <h1 className="font-display mt-2 text-2xl">コラム</h1>
 
       <ul className="mt-10 divide-y divide-line border-y border-line">
         {posts.map((post) => (
@@ -26,7 +26,7 @@ export default async function JournalPage() {
         ))}
         {posts.length === 0 && (
           <li className="py-8 text-center text-sm text-charcoal-soft">
-            JOURNALの投稿はまだありません。
+            コラムの投稿はまだありません。
           </li>
         )}
       </ul>

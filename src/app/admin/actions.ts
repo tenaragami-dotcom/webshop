@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/admin-auth";
+import { issueTryOnCouponIfEligible } from "@/lib/coupon";
 
 function slugify(name: string, id: number) {
   return `custom-${id}-${name
@@ -435,6 +436,9 @@ export async function updateOrderPaymentStatus(orderId: string, formData: FormDa
     | "FAILED"
     | "REFUNDED";
   await prisma.order.update({ where: { id: orderId }, data: { paymentStatus } });
+  if (paymentStatus === "PAID") {
+    await issueTryOnCouponIfEligible(orderId);
+  }
   revalidatePath("/admin/orders");
 }
 

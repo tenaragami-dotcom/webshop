@@ -16,7 +16,7 @@ export default async function EditJournalPostPage({
 
   return (
     <div>
-      <h1 className="font-display text-2xl">JOURNAL編集</h1>
+      <h1 className="font-display text-2xl">コラム編集</h1>
       <JournalPostForm post={post} action={action} />
     </div>
   );

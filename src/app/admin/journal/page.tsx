@@ -9,7 +9,7 @@ export default async function AdminJournalPage() {
   return (
     <div>
       <div className="flex items-center justify-between">
-        <h1 className="font-display text-2xl">JOURNAL管理</h1>
+        <h1 className="font-display text-2xl">コラム管理</h1>
         <Link
           href="/admin/journal/new"
           className="border border-charcoal bg-charcoal px-4 py-2 text-xs tracking-wide-jp text-white hover:bg-charcoal/90"
@@ -57,7 +57,7 @@ export default async function AdminJournalPage() {
             {posts.length === 0 && (
               <tr>
                 <td colSpan={3} className="py-6 text-center text-charcoal-soft">
-                  JOURNALの投稿はまだありません。
+                  コラムの投稿はまだありません。
                 </td>
               </tr>
             )}

@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useCartStore } from "@/lib/cart-store";
 import { formatDate, formatPrice } from "@/lib/format";
+import { GIFT_WRAP_FEE } from "@/lib/gift-wrap";
 import { RentalCalendar } from "@/components/RentalCalendar";
 import {
   addDaysStr,
@@ -81,6 +82,7 @@ export function AddToCartPanel({
     isSellable && stockQuantity > 0 ? "PURCHASE" : "RENTAL"
   );
   const [quantity, setQuantity] = useState(1);
+  const [giftWrap, setGiftWrap] = useState(false);
   const [selectedVariant, setSelectedVariant] = useState(variants[0]?.name);
   const [planType, setPlanType] = useState<RentalPlanType>(plans[0] ?? "STANDARD");
   const [extensionDays, setExtensionDays] = useState(0);
@@ -98,7 +100,11 @@ export function AddToCartPanel({
 
   const occupiedDays = planBaseDays(planType, rentalProduct) + (planType !== "TRY_ON" ? extensionDays : 0);
   const endDate = startDate ? computeRentalEnd(startDate, planType, extensionDays, rentalProduct) : null;
-  const deliveryDate = startDate ? addDaysStr(startDate, -2) : null;
+  const deliveryDate = startDate
+    ? planType === "TRY_ON"
+      ? startDate
+      : addDaysStr(startDate, -2)
+    : null;
   const rentalPrice = computeRentalPrice(planType, extensionDays, rentalProduct);
 
   function handlePlanChange(next: RentalPlanType) {
@@ -127,8 +133,9 @@ export function AddToCartPanel({
         imageUrl,
         variantName: selectedVariant,
         type: "PURCHASE",
-        price: priceSell,
+        price: priceSell + (giftWrap ? GIFT_WRAP_FEE : 0),
         quantity,
+        giftWrap,
       });
       setAdded(true);
       return;
@@ -246,7 +253,9 @@ export function AddToCartPanel({
         priceSell !== null &&
         (canPurchase ? (
           <div>
-            <p className="text-lg">{formatPrice(priceSell)}</p>
+            <p className="text-lg">
+              {formatPrice(priceSell + (giftWrap ? GIFT_WRAP_FEE : 0))}
+            </p>
             <label className="mt-3 flex items-center gap-2 text-xs text-charcoal-soft">
               数量
               <input
@@ -262,6 +271,14 @@ export function AddToCartPanel({
                 className="w-16 border border-line px-2 py-1"
               />
               <span>（在庫 {effectiveStock} 点）</span>
+            </label>
+            <label className="mt-3 flex items-center gap-2 text-xs text-charcoal-soft">
+              <input
+                type="checkbox"
+                checked={giftWrap}
+                onChange={(e) => setGiftWrap(e.target.checked)}
+              />
+              有料ギフトラッピング（+{formatPrice(GIFT_WRAP_FEE)}）
             </label>
           </div>
         ) : (

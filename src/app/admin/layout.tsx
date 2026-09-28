@@ -7,10 +7,11 @@ const NAV = [
   { href: "/admin/brands", label: "ブランド管理" },
   { href: "/admin/categories", label: "カテゴリー管理" },
   { href: "/admin/news", label: "お知らせ管理" },
-  { href: "/admin/journal", label: "JOURNAL管理" },
+  { href: "/admin/journal", label: "コラム管理" },
   { href: "/admin/bookings", label: "レンタル予約" },
   { href: "/admin/contact", label: "お問い合わせ管理" },
   { href: "/admin/orders", label: "注文管理" },
+  { href: "/admin/coupons", label: "クーポン管理" },
 ];
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {

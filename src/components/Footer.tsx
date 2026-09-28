@@ -15,7 +15,7 @@ const COLUMNS: { title: string; links: { href: string; label: string }[] }[] = [
     title: "NEWS",
     links: [
       { href: "/news", label: "お知らせ・キャンペーン" },
-      { href: "/journal", label: "JOURNAL" },
+      { href: "/journal", label: "コラム" },
     ],
   },
   {

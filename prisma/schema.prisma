@@ -26,6 +26,7 @@ model User {
 
   orders        Order[]
   rentalBookings RentalBooking[]
+  coupons        Coupon[]
 }
 
 model Brand {
@@ -169,10 +170,28 @@ model Order {
   createdAt       DateTime      @default(now())
   cancelledAt     DateTime?
   cancellationFee Int?
+  couponId        String?
+  discountAmount  Int?
 
   user           User            @relation(fields: [userId], references: [id])
   items          OrderItem[]
   rentalBookings RentalBooking[]
+  coupon         Coupon?         @relation("OrderCoupon", fields: [couponId], references: [id])
+}
+
+model Coupon {
+  id              String    @id @default(cuid())
+  code            String    @unique
+  userId          String
+  discountPercent Int       @default(10)
+  sourceOrderId   String    @unique
+  issuedAt        DateTime  @default(now())
+  expiresAt       DateTime
+  usedAt          DateTime?
+  usedOrderId     String?
+
+  user   User    @relation(fields: [userId], references: [id])
+  orders Order[] @relation("OrderCoupon")
 }
 
 model OrderItem {
@@ -183,6 +202,7 @@ model OrderItem {
   price       Int
   type        OrderType
   variantName String?
+  giftWrap    Boolean   @default(false)
 
   order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
   product Product @relation(fields: [productId], references: [id])

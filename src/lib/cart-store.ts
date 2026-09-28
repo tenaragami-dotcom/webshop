@@ -19,16 +19,21 @@ export type CartItem = {
   planType?: RentalPlanType;
   planLabel?: string;
   extensionDays?: number;
+  giftWrap?: boolean;
 };
 
-export type CartLineKey = Pick<CartItem, "productId" | "type" | "rentalStart" | "variantName">;
+export type CartLineKey = Pick<
+  CartItem,
+  "productId" | "type" | "rentalStart" | "variantName" | "giftWrap"
+>;
 
 function sameLine(a: CartItem, b: CartLineKey) {
   return (
     a.productId === b.productId &&
     a.type === b.type &&
     a.rentalStart === b.rentalStart &&
-    a.variantName === b.variantName
+    a.variantName === b.variantName &&
+    !!a.giftWrap === !!b.giftWrap
   );
 }
 

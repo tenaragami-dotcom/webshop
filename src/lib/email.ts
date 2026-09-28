@@ -41,9 +41,17 @@ export async function sendBankTransferInstructions(params: {
   amount: number;
 }) {
   const bankInfo = [
-    "◯◯銀行 ◯◯支店",
-    "普通　◯◯◯◯◯◯◯",
-    "口座名義：アトリエ ルシエル（Atelier le ciel）",
+    "【三井住友銀行】",
+    "オリーブDILL支店　普通　0374207",
+    "口座名義：アダチ　トモミ",
+    "",
+    "【北洋銀行】",
+    "厚別中央支店　普通　3600802",
+    "口座名義：アダチ　トモミ",
+    "",
+    "【ゆうちょ銀行】",
+    "九〇八店　普通　5389737",
+    "口座名義：アダチ　トモミ",
   ].join("\n");
 
   const text = `${params.customerName} 様

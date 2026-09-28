@@ -6,12 +6,15 @@ import { isRangeAvailable } from "@/lib/availability";
 import { createPayment } from "@/lib/payment";
 import { sendBankTransferInstructions } from "@/lib/email";
 import { computeRentalPrice, earliestBookableDate, MIN_BOOKING_LEAD_DAYS } from "@/lib/rental-plan";
+import { isCouponUsable, issueTryOnCouponIfEligible } from "@/lib/coupon";
+import { GIFT_WRAP_FEE } from "@/lib/gift-wrap";
 
 const checkoutSchema = z.object({
   shippingName: z.string().min(1),
   shippingAddress: z.string().min(1),
   shippingPhone: z.string().min(1),
   paymentMethod: z.enum(["CREDIT_CARD", "BANK_TRANSFER"]).default("CREDIT_CARD"),
+  couponCode: z.string().optional(),
   items: z
     .array(
       z.object({
@@ -23,6 +26,7 @@ const checkoutSchema = z.object({
         variantName: z.string().optional(),
         planType: z.enum(["STANDARD", "TRY_ON"]).optional(),
         extensionDays: z.number().int().min(0).optional(),
+        giftWrap: z.boolean().optional(),
       })
     )
     .min(1),
@@ -50,6 +54,7 @@ export async function POST(req: NextRequest) {
 
   let totalAmount = 0;
   const rentalPrices = new Map<number, number>();
+  const purchaseUnitPrices = new Map<number, number>();
 
   for (let index = 0; index < data.items.length; index++) {
     const item = data.items[index];
@@ -88,7 +93,9 @@ export async function POST(req: NextRequest) {
           { status: 409 }
         );
       }
-      totalAmount += product.priceSell * item.quantity;
+      const unitPrice = product.priceSell + (item.giftWrap ? GIFT_WRAP_FEE : 0);
+      purchaseUnitPrices.set(index, unitPrice);
+      totalAmount += unitPrice * item.quantity;
     } else {
       if (!product.isRentable) {
         return NextResponse.json(
@@ -137,6 +144,36 @@ export async function POST(req: NextRequest) {
 
   const orderType = data.items.some((i) => i.type === "RENTAL") ? "RENTAL" : "PURCHASE";
 
+  let appliedCoupon: { id: string; discountPercent: number } | null = null;
+  let discountAmount = 0;
+  if (data.couponCode) {
+    const found = await prisma.coupon.findUnique({ where: { code: data.couponCode } });
+    if (!found || found.userId !== session.user.id) {
+      return NextResponse.json({ error: "クーポンコードが見つかりません" }, { status: 400 });
+    }
+    if (!isCouponUsable(found)) {
+      return NextResponse.json(
+        { error: "このクーポンはご利用いただけません（使用済みまたは有効期限切れです）" },
+        { status: 400 }
+      );
+    }
+    const eligibleSubtotal = data.items.reduce((sum, item, index) => {
+      if (item.type === "RENTAL" && (item.planType ?? "STANDARD") === "STANDARD") {
+        return sum + (rentalPrices.get(index) ?? 0);
+      }
+      return sum;
+    }, 0);
+    if (eligibleSubtotal === 0) {
+      return NextResponse.json(
+        { error: "このクーポンは標準プランのレンタルにのみご利用いただけます" },
+        { status: 400 }
+      );
+    }
+    discountAmount = Math.round((eligibleSubtotal * found.discountPercent) / 100);
+    appliedCoupon = found;
+    totalAmount -= discountAmount;
+  }
+
   const order = await prisma.$transaction(async (tx) => {
     const created = await tx.order.create({
       data: {
@@ -148,16 +185,20 @@ export async function POST(req: NextRequest) {
         shippingName: data.shippingName,
         shippingAddress: data.shippingAddress,
         shippingPhone: data.shippingPhone,
+        couponId: appliedCoupon?.id,
+        discountAmount: appliedCoupon ? discountAmount : null,
         items: {
           create: data.items.map((item, index) => {
-            const product = productMap.get(item.productId)!;
             return {
               productId: item.productId,
               quantity: item.type === "PURCHASE" ? item.quantity : 1,
               price:
-                item.type === "PURCHASE" ? product.priceSell! : rentalPrices.get(index)!,
+                item.type === "PURCHASE"
+                  ? purchaseUnitPrices.get(index)!
+                  : rentalPrices.get(index)!,
               type: item.type,
               variantName: item.variantName,
+              giftWrap: item.type === "PURCHASE" ? !!item.giftWrap : false,
             };
           }),
         },
@@ -193,6 +234,13 @@ export async function POST(req: NextRequest) {
           });
         }
       }
+    }
+
+    if (appliedCoupon) {
+      await tx.coupon.update({
+        where: { id: appliedCoupon.id },
+        data: { usedAt: new Date(), usedOrderId: created.id },
+      });
     }
 
     return created;
@@ -232,6 +280,7 @@ export async function POST(req: NextRequest) {
       where: { orderId: order.id },
       data: { status: "CONFIRMED" },
     });
+    await issueTryOnCouponIfEligible(order.id);
   } else {
     await prisma.order.update({
       where: { id: order.id },
