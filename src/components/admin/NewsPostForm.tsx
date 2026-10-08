@@ -25,13 +25,18 @@ export function NewsPostForm({ post, action }: Props) {
     e.target.value = "";
     if (!file) return;
 
+    if (file.size > 4 * 1024 * 1024) {
+      setError("ファイルサイズは4MB以内にしてください");
+      return;
+    }
+
     setError(null);
     setUploading(true);
     try {
       const formData = new FormData();
       formData.append("file", file);
       const res = await fetch("/api/admin/upload", { method: "POST", body: formData });
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
       if (!res.ok) {
         setError(data.error ?? "アップロードに失敗しました。");
         return;
