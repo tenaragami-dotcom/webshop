@@ -25,13 +25,16 @@ export async function sendContactNotification(params: {
   }
 
   const resend = new Resend(resendApiKey);
-  await resend.emails.send({
+  const { error } = await resend.emails.send({
     from: `Atelier le ciel <${fromEmail}>`,
     to: notifyEmail,
     replyTo: params.email,
     subject: `【お問い合わせ】${params.subject}`,
     text: `お名前: ${params.name}\nメールアドレス: ${params.email}\n種類: ${params.subject}\n\n${params.message}`,
   });
+  if (error) {
+    console.error("[email] Failed to send contact notification:", error);
+  }
 }
 
 export async function sendBankTransferInstructions(params: {
@@ -77,10 +80,17 @@ ${bankInfo}
   }
 
   const resend = new Resend(resendApiKey);
-  await resend.emails.send({
+  const { error } = await resend.emails.send({
     from: `Atelier le ciel <${fromEmail}>`,
     to: params.toEmail,
+    replyTo: notifyEmail,
     subject: "【Atelier le ciel】お振込みのご案内",
     text,
   });
+  if (error) {
+    console.error("[email] Failed to send bank transfer instructions:", {
+      orderId: params.orderId,
+      error,
+    });
+  }
 }
