@@ -61,6 +61,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ url: blob.url });
   } catch (e) {
     console.error("[upload] Vercel Blob upload failed:", e);
-    return NextResponse.json({ error: "画像のアップロードに失敗しました" }, { status: 500 });
+    const detail = e instanceof Error ? e.message : String(e);
+    return NextResponse.json(
+      { error: `画像のアップロードに失敗しました（${detail}）` },
+      { status: 500 }
+    );
   }
 }
