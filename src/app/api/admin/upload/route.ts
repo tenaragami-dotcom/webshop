@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { randomUUID } from "node:crypto";
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { put } from "@vercel/blob";
 import { auth } from "@/lib/auth";
 
 const ALLOWED_TYPES: Record<string, string> = {
@@ -11,7 +12,8 @@ const ALLOWED_TYPES: Record<string, string> = {
   "image/gif": "gif",
 };
 
-const MAX_SIZE_BYTES = 5 * 1024 * 1024; // 5MB
+// Vercelのサーバーレス関数はリクエストボディが約4.5MBまでのため、それ未満に制限する
+const MAX_SIZE_BYTES = 4 * 1024 * 1024; // 4MB
 
 export async function POST(req: NextRequest) {
   const session = await auth();
@@ -36,17 +38,29 @@ export async function POST(req: NextRequest) {
 
   if (file.size > MAX_SIZE_BYTES) {
     return NextResponse.json(
-      { error: "ファイルサイズは5MB以内にしてください" },
+      { error: "ファイルサイズは4MB以内にしてください" },
       { status: 400 }
     );
   }
 
-  const uploadDir = path.join(process.cwd(), "public", "uploads", "news");
-  await mkdir(uploadDir, { recursive: true });
-
   const filename = `${randomUUID()}.${ext}`;
-  const buffer = Buffer.from(await file.arrayBuffer());
-  await writeFile(path.join(uploadDir, filename), buffer);
 
-  return NextResponse.json({ url: `/uploads/news/${filename}` });
+  // トークン未設定のローカル開発時だけ、従来通りpublic/配下に保存する
+  if (!process.env.BLOB_READ_WRITE_TOKEN) {
+    const uploadDir = path.join(process.cwd(), "public", "uploads", "news");
+    await mkdir(uploadDir, { recursive: true });
+    await writeFile(path.join(uploadDir, filename), Buffer.from(await file.arrayBuffer()));
+    return NextResponse.json({ url: `/uploads/news/${filename}` });
+  }
+
+  try {
+    const blob = await put(`uploads/${filename}`, file, {
+      access: "public",
+      contentType: file.type,
+    });
+    return NextResponse.json({ url: blob.url });
+  } catch (e) {
+    console.error("[upload] Vercel Blob upload failed:", e);
+    return NextResponse.json({ error: "画像のアップロードに失敗しました" }, { status: 500 });
+  }
 }

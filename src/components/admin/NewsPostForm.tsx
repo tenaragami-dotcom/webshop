@@ -92,7 +92,7 @@ export function NewsPostForm({ post, action }: Props) {
             {uploading ? "アップロード中..." : "＋ 画像を挿入"}
           </button>
           <p className="text-[11px] text-charcoal-soft">
-            カーソル位置に画像を挿入します（JPEG/PNG/WebP/GIF、5MBまで）
+            カーソル位置に画像を挿入します（JPEG/PNG/WebP/GIF、4MBまで）
           </p>
         </div>
         <input

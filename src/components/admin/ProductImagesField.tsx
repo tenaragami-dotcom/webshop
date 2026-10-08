@@ -87,7 +87,7 @@ export function ProductImagesField({
         >
           {uploading ? "アップロード中..." : "＋ 画像を追加"}
         </button>
-        <p className="text-[11px] text-charcoal-soft">JPEG/PNG/WebP/GIF、5MBまで</p>
+        <p className="text-[11px] text-charcoal-soft">JPEG/PNG/WebP/GIF、4MBまで</p>
       </div>
       <input
         ref={fileInputRef}
