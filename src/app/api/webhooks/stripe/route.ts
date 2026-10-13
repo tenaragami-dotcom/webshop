@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 import { prisma } from "@/lib/prisma";
 import { issueTryOnCouponIfEligible } from "@/lib/coupon";
+import { notifyOrderPaid } from "@/lib/order-emails";
 
 const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
@@ -74,6 +75,7 @@ async function markOrderPaid(orderId: string, paymentRef: string) {
     data: { status: "CONFIRMED" },
   });
   await issueTryOnCouponIfEligible(orderId);
+  await notifyOrderPaid(orderId);
 }
 
 async function markOrderFailed(orderId: string) {

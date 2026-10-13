@@ -4,7 +4,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { isRangeAvailable } from "@/lib/availability";
 import { createPayment } from "@/lib/payment";
-import { sendBankTransferInstructions } from "@/lib/email";
+import { notifyBankTransferOrder, notifyOrderPaid } from "@/lib/order-emails";
 import { computeRentalPrice, earliestBookableDate, MIN_BOOKING_LEAD_DAYS } from "@/lib/rental-plan";
 import { isCouponUsable, issueTryOnCouponIfEligible } from "@/lib/coupon";
 import { GIFT_WRAP_FEE } from "@/lib/gift-wrap";
@@ -249,14 +249,7 @@ export async function POST(req: NextRequest) {
   const origin = req.nextUrl.origin;
 
   if (data.paymentMethod === "BANK_TRANSFER") {
-    if (session.user.email) {
-      await sendBankTransferInstructions({
-        toEmail: session.user.email,
-        customerName: data.shippingName,
-        orderId: order.id,
-        amount: totalAmount,
-      });
-    }
+    await notifyBankTransferOrder(order.id);
     return NextResponse.json({
       redirectUrl: `${origin}/checkout/complete?orderId=${order.id}`,
       orderId: order.id,
@@ -281,6 +274,7 @@ export async function POST(req: NextRequest) {
       data: { status: "CONFIRMED" },
     });
     await issueTryOnCouponIfEligible(order.id);
+    await notifyOrderPaid(order.id);
   } else {
     await prisma.order.update({
       where: { id: order.id },
