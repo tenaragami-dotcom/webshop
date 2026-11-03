@@ -1,14 +1,7 @@
 "use client";
 
-import { useState } from "react";
-
-const SUBJECTS = [
-  "商品について",
-  "レンタルについて",
-  "セミオーダー・フルオーダーについて",
-  "ご注文について",
-  "その他",
-];
+import { useRef, useState } from "react";
+import { CONTACT_MESSAGE_MAX, CONTACT_SUBJECTS as SUBJECTS } from "@/lib/contact";
 
 export function ContactForm({
   defaultName,
@@ -19,8 +12,10 @@ export function ContactForm({
 }) {
   const [name, setName] = useState(defaultName);
   const [email, setEmail] = useState(defaultEmail);
-  const [subject, setSubject] = useState(SUBJECTS[0]);
+  const [subject, setSubject] = useState<string>(SUBJECTS[0]);
   const [message, setMessage] = useState("");
+  const [website, setWebsite] = useState("");
+  const openedAt = useRef(Date.now());
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState(false);
@@ -33,7 +28,14 @@ export function ContactForm({
       const res = await fetch("/api/contact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, subject, message }),
+        body: JSON.stringify({
+          name,
+          email,
+          subject,
+          message,
+          website,
+          elapsedMs: Date.now() - openedAt.current,
+        }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -101,10 +103,23 @@ export function ContactForm({
           required
           value={message}
           onChange={(e) => setMessage(e.target.value)}
+          maxLength={CONTACT_MESSAGE_MAX}
           rows={6}
           className="mt-1 w-full border border-line px-3 py-2 text-sm"
         />
       </label>
+
+      <div aria-hidden="true" className="absolute left-[-9999px] h-0 w-0 overflow-hidden">
+        <label>
+          ウェブサイト（空のままにしてください）
+          <input
+            tabIndex={-1}
+            autoComplete="off"
+            value={website}
+            onChange={(e) => setWebsite(e.target.value)}
+          />
+        </label>
+      </div>
 
       {error && <p className="text-xs text-red-600">{error}</p>}
 
