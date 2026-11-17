@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { formatDate, formatPrice } from "@/lib/format";
 import { SignOutButton } from "@/components/SignOutButton";
 import { CancelOrderButton } from "@/components/CancelOrderButton";
+import { ChangePasswordForm } from "@/components/ChangePasswordForm";
 import { canCancelOrder, computeCancellationFee } from "@/lib/cancellation";
 import { isCouponUsable } from "@/lib/coupon";
 
@@ -123,6 +124,11 @@ export default async function AccountPage() {
             })}
           </ul>
         )}
+      </section>
+
+      <section className="mt-12">
+        <h2 className="font-display text-lg tracking-wide-jp">パスワード変更</h2>
+        <ChangePasswordForm />
       </section>
 
       <div className="mt-12 text-center">

@@ -1,5 +1,6 @@
 "use server";
 
+import bcrypt from "bcryptjs";
 import { revalidatePath } from "next/cache";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -37,4 +38,36 @@ export async function cancelOrder(orderId: string) {
   ]);
 
   revalidatePath("/account");
+}
+
+export type ChangePasswordResult = { ok: true } | { ok: false; error: string };
+
+export async function changePassword(
+  currentPassword: string,
+  newPassword: string
+): Promise<ChangePasswordResult> {
+  const session = await auth();
+  if (!session?.user) {
+    return { ok: false, error: "ログインが必要です" };
+  }
+
+  // bcryptは72バイトを超える部分を無視するため、上限を72文字にしている
+  if (typeof newPassword !== "string" || newPassword.length < 8 || newPassword.length > 72) {
+    return { ok: false, error: "新しいパスワードは8文字以上72文字以内で入力してください" };
+  }
+  if (typeof currentPassword !== "string" || currentPassword === newPassword) {
+    return { ok: false, error: "新しいパスワードは、現在のパスワードと異なるものにしてください" };
+  }
+
+  const user = await prisma.user.findUnique({ where: { id: session.user.id } });
+  if (!user || !(await bcrypt.compare(currentPassword, user.passwordHash))) {
+    return { ok: false, error: "現在のパスワードが正しくありません" };
+  }
+
+  await prisma.user.update({
+    where: { id: user.id },
+    data: { passwordHash: await bcrypt.hash(newPassword, 10) },
+  });
+
+  return { ok: true };
 }

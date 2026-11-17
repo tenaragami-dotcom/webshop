@@ -72,12 +72,6 @@ export function LoginForm({ callbackUrl }: { callbackUrl: string }) {
           新規登録
         </Link>
       </p>
-
-      <div className="mt-6 border-t border-line pt-4 text-[11px] text-charcoal-soft">
-        <p>デモ用アカウント</p>
-        <p>会員: member@example.com / member1234</p>
-        <p>管理者: admin@example.com / admin1234</p>
-      </div>
     </form>
   );
 }
