@@ -6,9 +6,9 @@ import {
   CONTACT_MAX_LINKS,
   CONTACT_MESSAGE_MAX,
   CONTACT_MESSAGE_MIN,
-  CONTACT_MIN_FILL_MS,
   CONTACT_SUBJECTS,
 } from "@/lib/contact";
+import { looksLikeBot } from "@/lib/bot-check";
 
 const contactSchema = z.object({
   name: z.string().trim().min(1).max(100),
@@ -33,7 +33,7 @@ export async function POST(req: NextRequest) {
 
   // 人間は見えない欄に入力しない／ページを開いて数秒は入力にかかる。
   // ボットと判断した送信は、再試行や回避をさせないため、成功したように見せて破棄する。
-  if (website || (elapsedMs !== undefined && elapsedMs < CONTACT_MIN_FILL_MS)) {
+  if (looksLikeBot(website, elapsedMs)) {
     return NextResponse.json({ id: "ok" });
   }
   if (elapsedMs === undefined) {

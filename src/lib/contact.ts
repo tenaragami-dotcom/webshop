@@ -9,4 +9,3 @@ export const CONTACT_SUBJECTS = [
 export const CONTACT_MESSAGE_MIN = 5;
 export const CONTACT_MESSAGE_MAX = 3000;
 export const CONTACT_MAX_LINKS = 2;
-export const CONTACT_MIN_FILL_MS = 2000;

@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 export function RegisterForm() {
   const router = useRouter();
@@ -10,6 +10,8 @@ export function RegisterForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [phone, setPhone] = useState("");
+  const [website, setWebsite] = useState("");
+  const openedAt = useRef(Date.now());
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -21,7 +23,14 @@ export function RegisterForm() {
       const res = await fetch("/api/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, password, phone: phone || undefined }),
+        body: JSON.stringify({
+          name,
+          email,
+          password,
+          phone: phone || undefined,
+          website,
+          elapsedMs: Date.now() - openedAt.current,
+        }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -66,6 +75,7 @@ export function RegisterForm() {
         <input
           required
           minLength={8}
+          maxLength={72}
           type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
@@ -80,6 +90,18 @@ export function RegisterForm() {
           className="mt-1 w-full border border-line px-3 py-2 text-sm"
         />
       </label>
+
+      <div aria-hidden="true" className="absolute left-[-9999px] h-0 w-0 overflow-hidden">
+        <label>
+          ウェブサイト（空のままにしてください）
+          <input
+            tabIndex={-1}
+            autoComplete="off"
+            value={website}
+            onChange={(e) => setWebsite(e.target.value)}
+          />
+        </label>
+      </div>
 
       {error && <p className="text-xs text-red-600">{error}</p>}
 
